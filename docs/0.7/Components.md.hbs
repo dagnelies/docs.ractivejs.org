@@ -1,116 +1,22 @@
 ---
 title: Components
 ---
-In many situations, you want to encapsulate behaviour and markup into a single reusable *component*, which can be dropped in to Ractive applications.
 
-First, you need to **create the component** with {{{createLink 'Ractive.extend()'}}}, which allows you to define a template, initialisation behaviour, default data, and so on. (If you're not familiar with Ractive.extend() you should read that page first.)
-
-* [Initialisation Options](#init)
+* [Usage](#usage)
 * [Binding](#binding)
 * [Events](#events)
 * [The \{{>content}} Directive](#content)
 * [The \{{yield}} Directive](#yield)
+* [Initialisation Options](#init)
 * [Parents and Containers](#parent)
 
-## <a name="init"></a>Initialisation Options
+## <a name="usage"></a>Usage
 
-Most of the normal Ractive {{{ createLink 'options' 'initialisation options' }}} also apply to components, particularly the {{{ createLink 'lifecycle events' }}}, a few of which are listed here.
+In many situations, you want to encapsulate behaviour and markup into a single reusable *component*, which can be dropped in to Ractive applications.
 
-### onconstruct *`Function`*
+First, you need to **create the component** with {{{createLink 'Ractive.extend()'}}}, which allows you to define a template, initialisation behaviour, default data, and so on. (If you're not familiar with Ractive.extend() you should read that page first.)
 
-`onconstruct` fires a single time immediately after the instance is created and will be passed all the data that will initialize the particular component.
-This could include setting/changing partials, adding decorators, adding other subcomponents, or anything you would use to initialise a normal Ractive instance.
-
-### onconfig *`Function`*
-
-`onconfig` fires a single time once all of the configuration options have been processed.
-
-### oninit *`Function`*
-
-`oninit` fires a single time when the component is ready to be rendered. You can use this event to set up any proxy event listeners or observers that you need on a particular instance.
-
-### onrender *`Function`*
-
-`onrender` fires just before each time the component is rendered.
-
-### oncomplete *`Function`*
-
-`oncomplete` fires just after the component is rendered and any transitions have completed. At this point, the component DOM is available.
-
-### isolated *`Boolean`*
-
-Isolated is defaulted to false. This applies to your template scope being isolated to only the data that is passed in.
-For example if you wanted to access a particular variable on your parent data as if it existed on your component then setting isolated false would allow this. However if you wanted your template scoped to only data you give it so that everything was very module then set isolated to true.
-
-
-Setting isolated to false
-
-```js
-
-
-var Component = Ractive.extend({
-  isolated: false,
-  template: '#component'
-
-});
-
-var ractive = new Ractive({
-  el: 'body',
-  template: '#template',
-  data: {
-    nonIsolatedSetting: 'This is a non isolated setting, get it anywhere'
-  },
-  components: { Component: Component }
-});
-
-```
-
-```html 
-
-<script id="template" type="text/ractive">
-  <div>
-    <Component>
-  </div>
-</script>
-
-<script id="component" type="text/ractive">
-
-  \{{nonIsolatedSetting}}
-
-</script>
-
-```
-
-The result of this would be
-
-```html
-  <div>
-    This is a non isolated setting, get it anywhere
-  </div>
-```
-
-
-But if we used the same example and set isolated to true
-```js
-
-var Component = Ractive.extend({
-  isolated: true,
-  template: '#template'
-})
-
-```
-
-Then the resulting output would be
-
-```html
-  <div>
-  </div>
-```
-
-Very complex example for such a simple idea but this could drastically effect you.
-
-
-oninit is called after the extended component has been initialized 
+Let's start with a simple example:
 
 ```js
 var MyWidget = Ractive.extend({
@@ -125,6 +31,8 @@ var MyWidget = Ractive.extend({
   }
 });
 ```
+
+The `oninit` is simply a function called when the component has been initialized.
 
 Then, you need to **register the component** by adding it to `Ractive.components`:
 
@@ -145,22 +53,8 @@ var ractive = new Ractive({
 Finally, you **use the component** by referring to it within another template:
 
 ```html
-<div class='application'>
-  <h1>I've got a widget</h1>
-  <widget message='Click to activate!'/>
-</div>
-```
-
-Using the 'widget' component like this is more or less equivalent to doing the following:
-
-```js
-new MyWidget({
-  el: document.querySelector( '.application' ),
-  append: true, // so the component doesn't nuke the <h1>
-  data: {
-    message: 'Click to activate!'
-  }
-});
+<h1>I've got a widget</h1>
+<widget message='Click to activate!'/>
 ```
 
 ## <a name="binding"></a>Binding
@@ -173,7 +67,9 @@ Instead of passing a static message ('Click to activate!') through, we could hav
 
 In this case, the value of `message` within the component would be bound to the value of `foo` in the parent Ractive instance. When the value of parent-`foo` changes, the value of child-`message` also changes, and vice-versa.
 
+
 ### Data Context
+
 A new data context gets created for the component, so any parameters don't pollute the primary data (bound values still update):
 
 ```js
@@ -366,6 +262,77 @@ var Foo = Ractive.extend({
   template: '<div>Here is my content: \{{yield}}</div><div>Here is my foo: \{{yield foo}}</div>'
 });
 ```
+
+
+## <a name="init"></a>Initialisation Options
+
+Most of the normal Ractive {{{ createLink 'options' 'initialisation options' }}} also apply to components, particularly the {{{ createLink 'lifecycle events' }}}, a few of which are listed here.
+
+### onconstruct *`Function`*
+
+`onconstruct` fires a single time immediately after the instance is created and will be passed all the data that will initialize the particular component.
+This could include setting/changing partials, adding decorators, adding other subcomponents, or anything you would use to initialise a normal Ractive instance.
+
+### onconfig *`Function`*
+
+`onconfig` fires a single time once all of the configuration options have been processed.
+
+### oninit *`Function`*
+
+`oninit` fires a single time when the component is ready to be rendered. You can use this event to set up any proxy event listeners or observers that you need on a particular instance.
+
+### onrender *`Function`*
+
+`onrender` fires just before each time the component is rendered.
+
+### oncomplete *`Function`*
+
+`oncomplete` fires just after the component is rendered and any transitions have completed. At this point, the component DOM is available.
+
+### isolated *`Boolean`*
+
+Isolated is `false` by default. If `true`, the data accessible to the component is limited to the data that is passed in.
+
+Setting isolated to false:
+
+```js
+var Widget = Ractive.extend({
+  isolated: false,
+  template: 'Foobar: \{{foo}} \{{bar}}'
+});
+
+var ractive = new Ractive({
+  el: 'body',
+  template: '<widget foo="hey!" />',
+  data: {
+    foo: 'foo!!!',
+    bar: 'bar!!!'
+  },
+  components: { widget: Widget }
+});
+```
+Would result into:
+```html
+  Foobar: hey! bar!!!
+```
+
+
+But if we used the same example and set isolated to true
+```js
+
+var Component = Ractive.extend({
+  isolated: true,
+  template: 'Foobar: \{{foo}} \{{bar}}'
+})
+
+```
+
+Then the resulting output would be
+```html
+  Foobar: hey!
+```
+
+Note that what's *inside* a component with `{{yield}}` is still data-bound to the containing instance.
 
 ## <a name="parent"></a>Parents and Containers
 
